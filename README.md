@@ -34,6 +34,7 @@ cp config.example.json config.json
 - `peers[].port` — порт сервера WireGuard
 - `REPLACE_WITH_PRIVATE_KEY` — приватный ключ клиента
 - `REPLACE_WITH_PUBLIC_KEY` — публичный ключ сервера
+- `REPLACE_WITH_PRE_SHARED_KEY` — pre-shared key (если настроен на сервере, иначе убери поле)
 - `allowed_ips` — подсети, доступные через этот туннель
 
 **Маршруты**:

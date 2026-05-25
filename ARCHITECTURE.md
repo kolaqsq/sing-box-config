@@ -12,10 +12,9 @@ flowchart TD
 
     R -->|"protocol: dns"| DNSOUT[hijack-dns]
     R -->|"bittorrent"| DIR[direct]
-    R -->|"ip_is_private"| DIR
     R -->|"icmp / port 123 NTP"| DIR
     R -->|"192.168.123.0/24"| WGS["wg-sample\nWireGuard endpoint"]
-    R -->|"специфический IP/32"| DIR
+    R -->|"ip_is_private"| DIR
     R -->|"youtube · reddit"| HY2["hy2-sample2\nHysteria2 port hopping"]
     R -->|"cursor · claude · anthropic\nClaude Helper"| VLS["vls-sample\nVLESS·REALITY·gRPC"]
     R -->|"Telegram"| SEL
@@ -81,19 +80,22 @@ flowchart LR
 | 3 | `protocol: bittorrent` | `direct` |
 | 4 | `network: icmp` | `direct` |
 | 5 | `port: 123` (NTP) | `direct` |
-| 6 | Приватные IP | `direct` |
-| 7 | IP в подсети WireGuard | `wg-sample` |
-| 8 | Конкретный IP/32 | `direct` |
-| 9 | Домен содержит `youtube.com`, `reddit` | `hy2-sample2` |
-| 10 | Домен содержит `cursor`, `claude`, `anthropic` | `vls-sample` |
-| 11 | Процесс `Claude Helper` | `vls-sample` |
-| 12 | Процесс `Telegram` | `proxy` (selector) |
-| 13 | Домен `.ru`/`.su`/`.xn--p1ai` ИЛИ `geoip-ru` / `geosite-category-ru` | `direct` |
+| 6 | IP в подсети WireGuard | `wg-sample` |
+| 7 | Все остальные приватные IP | `direct` |
+| 8 | Домен содержит `youtube.com`, `reddit` | `hy2-sample2` |
+| 9 | Домен содержит `cursor`, `claude`, `anthropic` | `vls-sample` |
+| 10 | Процесс `Claude Helper` | `vls-sample` |
+| 11 | Процесс `Telegram` | `proxy` (selector) |
+| 12 | Домен `.ru`/`.su`/`.xn--p1ai` ИЛИ `geoip-ru` / `geosite-category-ru` | `direct` |
 | — | Всё остальное | `proxy` (selector) |
+
+> **Важно:** WireGuard-подсети (`allowed_ips`) обязательно должны стоять в правилах **до** `ip_is_private`, иначе приватные адреса (10.x, 192.168.x и т.д.) перехватятся раньше и пойдут в `direct`, минуя туннель.
 
 ### Endpoints
 
 WireGuard-туннели вынесены в секцию `endpoints` (не `outbounds`) — это требование sing-box 1.11+. В route rules они по-прежнему доступны по тегу как обычные аутбаунды. Для каждого туннеля указывается поле `allowed_ips` — только трафик к этим подсетям пойдёт через туннель.
+
+Если на сервере WireGuard настроен `PreSharedKey`, его необходимо указать в поле `pre_shared_key` у peer — без него handshake завершится с ошибкой `received invalid response message`.
 
 ### Rule sets
 

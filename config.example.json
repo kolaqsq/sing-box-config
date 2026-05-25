@@ -49,8 +49,7 @@
       "type": "tun",
       "tag": "tun-in",
       "address": [
-        "172.19.0.1/30",
-        "fdfe:dcba:9876::1/126"
+        "172.19.0.1/30"
       ],
       "mtu": 1400,
       "auto_route": true,
@@ -150,16 +149,16 @@
       "type": "wireguard",
       "tag": "wg-sample",
       "address": [
-        "10.123.123.3/32",
-        "fd42:42:42::3/128"
+        "10.123.123.3/32"
       ],
       "private_key": "REPLACE_WITH_PRIVATE_KEY",
       "mtu": 1420,
       "peers": [
         {
           "address": "123.123.123.4",
-          "port": 0,
+          "port": 51820,
           "public_key": "REPLACE_WITH_PUBLIC_KEY",
+          "pre_shared_key": "REPLACE_WITH_PRE_SHARED_KEY",
           "allowed_ips": ["192.168.123.0/24"],
           "persistent_keepalive_interval": 25
         }
@@ -181,14 +180,12 @@
         "outbound": "direct"
       },
       {
-        "ip_is_private": true,
+        "network": "icmp",
         "outbound": "direct"
       },
       {
-        "ip_cidr": [
-          "192.168.50.0/24"
-        ],
-        "outbound": "wg-bruno"
+        "port": [123],
+        "outbound": "direct"
       },
       {
         "ip_cidr": [
@@ -197,17 +194,13 @@
         "outbound": "wg-sample"
       },
       {
+        "ip_is_private": true,
+        "outbound": "direct"
+      },
+      {
         "ip_cidr": [
           "123.123.123.10/32"
         ],
-        "outbound": "direct"
-      },
-      {
-        "network": "icmp",
-        "outbound": "direct"
-      },
-      {
-        "port": [123],
         "outbound": "direct"
       },
       {
@@ -284,7 +277,7 @@
     ],
     "default_domain_resolver": {
       "server": "dns-direct",
-      "strategy": "prefer_ipv4"
+      "strategy": "ipv4_only"
     },
     "final": "proxy",
     "auto_detect_interface": true

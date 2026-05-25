@@ -1,0 +1,301 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "strategy": "ipv4_only",
+    "reverse_mapping": true,
+    "servers": [
+      {
+        "type": "https",
+        "tag": "dns-remote",
+        "server": "8.8.8.8",
+        "tls": {
+          "server_name": "dns.google"
+        },
+        "detour": "proxy"
+      },
+      {
+        "type": "https",
+        "tag": "dns-direct",
+        "server": "77.88.8.8",
+        "tls": {
+          "server_name": "common.dot.dns.yandex.net"
+        }
+      }
+    ],
+    "rules": [
+      {
+        "rule_set": [
+          "geosite-category-ru",
+          "geosite-ru-available-only-inside"
+        ],
+        "server": "dns-direct"
+      },
+      {
+        "domain_suffix": [
+          ".ru",
+          ".su",
+          ".xn--p1ai"
+        ],
+        "server": "dns-direct"
+      }
+    ],
+    "final": "dns-remote"
+  },
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "address": [
+        "172.19.0.1/30",
+        "fdfe:dcba:9876::1/126"
+      ],
+      "mtu": 1400,
+      "auto_route": true,
+      "strict_route": true,
+      "stack": "mixed"
+    },
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "127.0.0.1",
+      "listen_port": 2080
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "proxy",
+      "outbounds": [
+        "hy2-sample",
+        "hy2-sample2",
+        "vls-sample",
+        "direct"
+      ],
+      "default": "hy2-sample"
+    },
+    {
+      "type": "hysteria2",
+      "tag": "hy2-sample",
+      "server": "123.123.123.1",
+      "server_port": 1935,
+      "password": "REPLACE_WITH_PASSWORD",
+      "obfs": {
+        "type": "salamander",
+        "password": "REPLACE_WITH_OBFS_PASSWORD"
+      },
+      "up_mbps": 100,
+      "down_mbps": 100,
+      "tls": {
+        "enabled": true,
+        "insecure": true,
+        "server_name": "github.com"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "hy2-sample2",
+      "server": "123.123.123.2",
+      "server_ports": [
+        "20000:50000"
+      ],
+      "hop_interval": "10s",
+      "password": "REPLACE_WITH_PASSWORD",
+      "obfs": {
+        "type": "salamander",
+        "password": "REPLACE_WITH_OBFS_PASSWORD"
+      },
+      "up_mbps": 100,
+      "down_mbps": 100,
+      "tls": {
+        "enabled": true,
+        "insecure": true,
+        "server_name": "github.com"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "vls-sample",
+      "server": "123.123.123.3",
+      "server_port": 443,
+      "uuid": "REPLACE_WITH_UUID",
+      "packet_encoding": "xudp",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.github.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "REPLACE_WITH_PUBLIC_KEY",
+          "short_id": "REPLACE_WITH_SHORT_ID"
+        }
+      },
+      "transport": {
+        "type": "grpc",
+        "service_name": ""
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ],
+  "endpoints": [
+    {
+      "type": "wireguard",
+      "tag": "wg-sample",
+      "address": [
+        "10.123.123.3/32",
+        "fd42:42:42::3/128"
+      ],
+      "private_key": "REPLACE_WITH_PRIVATE_KEY",
+      "mtu": 1420,
+      "peers": [
+        {
+          "address": "123.123.123.4",
+          "port": 0,
+          "public_key": "REPLACE_WITH_PUBLIC_KEY",
+          "allowed_ips": ["192.168.123.0/24"],
+          "persistent_keepalive_interval": 25
+        }
+      ]
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "inbound": ["tun-in", "mixed-in"],
+        "action": "sniff"
+      },
+      {
+        "protocol": "dns",
+        "action": "hijack-dns"
+      },
+      {
+        "protocol": "bittorrent",
+        "outbound": "direct"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "direct"
+      },
+      {
+        "ip_cidr": [
+          "192.168.50.0/24"
+        ],
+        "outbound": "wg-bruno"
+      },
+      {
+        "ip_cidr": [
+          "192.168.123.0/24"
+        ],
+        "outbound": "wg-sample"
+      },
+      {
+        "ip_cidr": [
+          "123.123.123.10/32"
+        ],
+        "outbound": "direct"
+      },
+      {
+        "network": "icmp",
+        "outbound": "direct"
+      },
+      {
+        "port": [123],
+        "outbound": "direct"
+      },
+      {
+        "domain_keyword": [
+          "youtube.com",
+          "reddit"
+        ],
+        "outbound": "hy2-sample2"
+      },
+      {
+        "domain_keyword": [
+          "cursor",
+          "claude",
+          "anthropic"
+        ],
+        "outbound": "vls-sample"
+      },
+      {
+        "process_name": [
+          "Claude Helper"
+        ],
+        "outbound": "vls-sample"
+      },
+      {
+        "process_name": [
+          "Telegram"
+        ],
+        "outbound": "proxy"
+      },
+      {
+        "type": "logical",
+        "mode": "or",
+        "rules": [
+          {
+            "domain_suffix": [
+              ".ru",
+              ".su",
+              ".xn--p1ai"
+            ]
+          },
+          {
+            "rule_set": [
+              "geoip-ru",
+              "geosite-category-ru",
+              "geosite-ru-available-only-inside"
+            ]
+          }
+        ],
+        "outbound": "direct"
+      }
+    ],
+    "rule_set": [
+      {
+        "tag": "geoip-ru",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geoip/geoip-ru.srs",
+        "download_detour": "direct"
+      },
+      {
+        "tag": "geosite-category-ru",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geosite/geosite-category-ru.srs",
+        "download_detour": "direct"
+      },
+      {
+        "tag": "geosite-ru-available-only-inside",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geosite/geosite-ru-available-only-inside.srs",
+        "download_detour": "direct"
+      }
+    ],
+    "default_domain_resolver": {
+      "server": "dns-direct",
+      "strategy": "prefer_ipv4"
+    },
+    "final": "proxy",
+    "auto_detect_interface": true
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true
+    },
+    "clash_api": {
+      "external_controller": "127.0.0.1:9090",
+      "secret": "change-me"
+    }
+  }
+}

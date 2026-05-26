@@ -84,12 +84,14 @@ flowchart LR
 | 7 | Все остальные приватные IP | `direct` |
 | 8 | Домен содержит `youtube.com`, `reddit` | `hy2-sample2` |
 | 9 | Домен содержит `cursor`, `claude`, `anthropic` | `vls-sample` |
-| 10 | Процесс `Claude Helper` | `vls-sample` |
-| 11 | Процесс `Telegram` | `proxy` (selector) |
+| 10 | Процесс `Claude Helper` (macOS) | `vls-sample` |
+| 11 | Процесс `Telegram` (macOS) | `proxy` (selector) |
 | 12 | Домен `.ru`/`.su`/`.xn--p1ai` ИЛИ `geoip-ru` / `geosite-category-ru` | `direct` |
 | — | Всё остальное | `proxy` (selector) |
 
 > **Важно:** WireGuard-подсети (`allowed_ips`) обязательно должны стоять в правилах **до** `ip_is_private`, иначе приватные адреса (10.x, 192.168.x и т.д.) перехватятся раньше и пойдут в `direct`, минуя туннель.
+
+> **Кросс-платформенность:** правила `process_name` зависят от платформы. На macOS используются имена без расширения (`Telegram`, `Claude Helper`). На **Windows** нужно указывать имя исполняемого файла с `.exe` (`Telegram.exe`, `claude.exe`). На **Linux** имя зависит от дистрибутива (`telegram-desktop`, `telegram` и т.д.). Если имя процесса не совпадает — правило просто пропускается, трафик уходит по следующим условиям.
 
 ### Endpoints
 

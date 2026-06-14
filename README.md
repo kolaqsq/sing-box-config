@@ -2,7 +2,7 @@
 
 Конфигурация [sing-box](https://github.com/SagerNet/sing-box) с раздельной маршрутизацией трафика: российские ресурсы идут напрямую, все остальные — через выбранный прокси, корпоративные VPN работают всегда независимо от активного прокси.
 
-Подробнее об архитектуре: [ARCHITECTURE.md](ARCHITECTURE.md)
+Подробнее об архитектуре: [ARCHITECTURE.md](configs/desktop/ARCHITECTURE.md)
 
 ## Требования
 
@@ -14,7 +14,7 @@
 Скопируй пример конфига и заполни плейсхолдеры:
 
 ```bash
-cp config.example.json config.json
+cp configs/desktop/desktop.example.json configs/desktop/config.json
 ```
 
 **Hysteria2** (`hy2-sample`, `hy2-sample2`):
@@ -47,8 +47,8 @@ cp config.example.json config.json
 ## Проверка и запуск
 
 ```bash
-sing-box check -c config.json
-sudo sing-box run -c config.json
+sing-box check -c configs/desktop/config.json
+sudo sing-box run -c configs/desktop/config.json
 ```
 
 ## HTTP/SOCKS прокси

@@ -15,16 +15,23 @@ flowchart TD
     R -->|"icmp / port 123 NTP"| DIR
     R -->|"192.168.123.0/24"| WGS["wg-sample\nWireGuard endpoint"]
     R -->|"ip_is_private"| DIR
-    R -->|"youtube · reddit"| HY2["hy2-sample2\nHysteria2 port hopping"]
+    R -->|"youtube · reddit"| HY2["hy2-hop-sample\nHysteria2 port hopping"]
     R -->|"cursor · claude · anthropic\nClaude Helper"| VLS["vls-sample\nVLESS·REALITY·gRPC"]
     R -->|"Telegram"| SEL
     R -->|".ru · geoip-ru\ngeosite-ru"| DIR
-    R -->|"всё остальное"| SEL{{"proxy selector\n[default: hy2-sample]"}}
+    R -->|"всё остальное"| SEL{{"proxy selector\n[default: hy2-fixed-sample]"}}
 
-    SEL --> HY1["hy2-sample\nHysteria2"]
+    SEL --> AUTO["auto\nurltest: самый быстрый"]
+    SEL --> HY1["hy2-fixed-sample\nHysteria2"]
     SEL --> HY2
+    SEL --> HY3["hy2-tls-sample\nHysteria2 TLS"]
     SEL --> VLS
     SEL --> DIR
+
+    AUTO -.-> HY1
+    AUTO -.-> HY2
+    AUTO -.-> HY3
+    AUTO -.-> VLS
 
     style WGS fill:#e8f4f8,stroke:#5b9bd5
     style SEL fill:#fff3cd,stroke:#ffc107
@@ -65,8 +72,10 @@ flowchart LR
 | Тег | Протокол | Особенности |
 |-----|----------|------------|
 | `proxy` | Selector | Ручной выбор прокси через Clash API |
-| `hy2-sample` | Hysteria2 | obfs salamander, фиксированный порт |
-| `hy2-sample2` | Hysteria2 | obfs salamander, port hopping (20000–50000) |
+| `auto` | URLTest | Автовыбор самого быстрого прокси (проверка раз в минуту) |
+| `hy2-fixed-sample` | Hysteria2 | obfs salamander, фиксированный порт, самоподписанный сертификат |
+| `hy2-hop-sample` | Hysteria2 | obfs salamander, основной порт 443 + port hopping (20000–50000) |
+| `hy2-tls-sample` | Hysteria2 | obfs salamander, фиксированный порт, валидный TLS-сертификат (проверка включена) |
 | `vls-sample` | VLESS | REALITY + gRPC + uTLS chrome |
 | `wg-sample` | WireGuard | Корпоративная сеть (endpoint, не входит в selector) |
 | `direct` | Direct | Прямое подключение |
@@ -82,7 +91,7 @@ flowchart LR
 | 5 | `port: 123` (NTP) | `direct` |
 | 6 | IP в подсети WireGuard | `wg-sample` |
 | 7 | Все остальные приватные IP | `direct` |
-| 8 | Домен содержит `youtube.com`, `reddit` | `hy2-sample2` |
+| 8 | Домен содержит `youtube.com`, `reddit` | `hy2-hop-sample` |
 | 9 | Домен содержит `cursor`, `claude`, `anthropic` | `vls-sample` |
 | 10 | Процесс `Claude Helper` (macOS) | `vls-sample` |
 | 11 | Процесс `Telegram` (macOS) | `proxy` (selector) |

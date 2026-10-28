@@ -17,10 +17,15 @@
 cp configs/desktop/desktop.example.json configs/desktop/config.json
 ```
 
-**Hysteria2** (`hy2-sample`, `hy2-sample2`):
-- `server` — IP-адрес сервера
+**Hysteria2** — три примера, оставь тот, что подходит под твой сервер:
+- `hy2-fixed-sample` — фиксированный порт, самоподписанный сертификат (`insecure: true`)
+- `hy2-hop-sample` — порт-хоппинг: `server_ports` + `hop_interval`, диапазон UDP-портов должен совпадать с настройкой сервера; `server_port` — основной порт
+- `hy2-tls-sample` — валидный TLS-сертификат (например, Let's Encrypt): проверка сертификата включена, `server_name` должен совпадать с доменом (или IP) из сертификата
+
+Во всех трёх:
+- `server` — адрес сервера
 - `REPLACE_WITH_PASSWORD` — пароль подключения
-- `REPLACE_WITH_OBFS_PASSWORD` — пароль obfs salamander
+- `REPLACE_WITH_OBFS_PASSWORD` — пароль obfs salamander (если obfs на сервере не настроен, убери блок `obfs`)
 
 **VLESS** (`vls-sample`):
 - `server` — IP-адрес сервера
@@ -29,7 +34,7 @@ cp configs/desktop/desktop.example.json configs/desktop/config.json
 - `REPLACE_WITH_SHORT_ID` — short ID REALITY
 
 **WireGuard** (`wg-sample` и другие):
-- `address` — IP-адрес клиента в сети VPN
+- `address` — IP-адрес клиента в сети VPN; IPv6-адрес нужен только если сервер выдаёт dual-stack, иначе убери его
 - `peers[].address` — IP-адрес сервера WireGuard
 - `peers[].port` — порт сервера WireGuard
 - `REPLACE_WITH_PRIVATE_KEY` — приватный ключ клиента
@@ -63,6 +68,8 @@ Port: 2080
 ## Переключение прокси
 
 Активный прокси выбирается через Clash API (`127.0.0.1:9090`) или изменением поля `default` в секции `selector`.
+
+Вариант `auto` (`urltest`) раз в минуту проверяет задержку до каждого сервера из своего списка и сам переключается на самый быстрый; `tolerance` — разница в мс, при которой переключение не происходит. Новые серверы добавляй и в `selector`, и в `auto`.
 
 ## Структура проекта
 

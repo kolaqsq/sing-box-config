@@ -68,16 +68,31 @@
       "type": "selector",
       "tag": "proxy",
       "outbounds": [
-        "hy2-sample",
-        "hy2-sample2",
+        "auto",
+        "hy2-fixed-sample",
+        "hy2-hop-sample",
+        "hy2-tls-sample",
         "vls-sample",
         "direct"
       ],
-      "default": "hy2-sample"
+      "default": "hy2-fixed-sample"
+    },
+    {
+      "type": "urltest",
+      "tag": "auto",
+      "outbounds": [
+        "hy2-fixed-sample",
+        "hy2-hop-sample",
+        "hy2-tls-sample",
+        "vls-sample"
+      ],
+      "url": "https://www.gstatic.com/generate_204",
+      "interval": "1m",
+      "tolerance": 50
     },
     {
       "type": "hysteria2",
-      "tag": "hy2-sample",
+      "tag": "hy2-fixed-sample",
       "server": "123.123.123.1",
       "server_port": 1935,
       "password": "REPLACE_WITH_PASSWORD",
@@ -95,8 +110,9 @@
     },
     {
       "type": "hysteria2",
-      "tag": "hy2-sample2",
+      "tag": "hy2-hop-sample",
       "server": "123.123.123.2",
+      "server_port": 443,
       "server_ports": [
         "20000:50000"
       ],
@@ -112,6 +128,26 @@
         "enabled": true,
         "insecure": true,
         "server_name": "github.com"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "hy2-tls-sample",
+      "server": "hy2.example.com",
+      "server_port": 443,
+      "password": "REPLACE_WITH_PASSWORD",
+      "obfs": {
+        "type": "salamander",
+        "password": "REPLACE_WITH_OBFS_PASSWORD"
+      },
+      "up_mbps": 100,
+      "down_mbps": 100,
+      "tls": {
+        "enabled": true,
+        "server_name": "hy2.example.com",
+        "alpn": [
+          "h3"
+        ]
       }
     },
     {
@@ -149,7 +185,8 @@
       "type": "wireguard",
       "tag": "wg-sample",
       "address": [
-        "10.123.123.3/32"
+        "10.123.123.3/32",
+        "fd42:42:42::3/128"
       ],
       "private_key": "REPLACE_WITH_PRIVATE_KEY",
       "mtu": 1420,
@@ -208,7 +245,7 @@
           "youtube.com",
           "reddit"
         ],
-        "outbound": "hy2-sample2"
+        "outbound": "hy2-hop-sample"
       },
       {
         "domain_keyword": [

@@ -6,7 +6,7 @@
 
 ## Требования
 
-- sing-box 1.11.0+
+- sing-box 1.14.0+ (`http_clients` для загрузки rule-set)
 - Права администратора (для TUN-интерфейса)
 
 ## Настройка
@@ -19,7 +19,7 @@ cp configs/desktop/desktop.example.json configs/desktop/config.json
 
 **Hysteria2** — три примера, оставь тот, что подходит под твой сервер:
 - `hy2-fixed-sample` — фиксированный порт, самоподписанный сертификат (`insecure: true`)
-- `hy2-hop-sample` — порт-хоппинг: `server_ports` + `hop_interval`, диапазон UDP-портов должен совпадать с настройкой сервера; `server_port` — основной порт
+- `hy2-hop-sample` — порт-хоппинг: `server_ports` + `hop_interval`, диапазон UDP-портов должен совпадать с настройкой сервера; `server_port` здесь не указывается — при заданном `server_ports` sing-box его игнорирует
 - `hy2-tls-sample` — валидный TLS-сертификат (например, Let's Encrypt): проверка сертификата включена, `server_name` должен совпадать с доменом (или IP) из сертификата
 
 Во всех трёх:

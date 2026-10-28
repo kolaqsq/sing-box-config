@@ -1,4 +1,5 @@
 {
+  "$schema": "https://sing-box.sagernet.org/schema.json",
   "log": {
     "level": "info",
     "timestamp": true
@@ -44,6 +45,11 @@
     ],
     "final": "dns-remote"
   },
+  "http_clients": [
+    {
+      "tag": "http-direct"
+    }
+  ],
   "inbounds": [
     {
       "type": "tun",
@@ -112,7 +118,6 @@
       "type": "hysteria2",
       "tag": "hy2-hop-sample",
       "server": "123.123.123.2",
-      "server_port": 443,
       "server_ports": [
         "20000:50000"
       ],
@@ -294,24 +299,22 @@
         "tag": "geoip-ru",
         "type": "remote",
         "format": "binary",
-        "url": "https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geoip/geoip-ru.srs",
-        "download_detour": "direct"
+        "url": "https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geoip/geoip-ru.srs"
       },
       {
         "tag": "geosite-category-ru",
         "type": "remote",
         "format": "binary",
-        "url": "https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geosite/geosite-category-ru.srs",
-        "download_detour": "direct"
+        "url": "https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geosite/geosite-category-ru.srs"
       },
       {
         "tag": "geosite-ru-available-only-inside",
         "type": "remote",
         "format": "binary",
-        "url": "https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geosite/geosite-ru-available-only-inside.srs",
-        "download_detour": "direct"
+        "url": "https://raw.githubusercontent.com/runetfreedom/russia-v2ray-rules-dat/release/sing-box/rule-set-geosite/geosite-ru-available-only-inside.srs"
       }
     ],
+    "default_http_client": "http-direct",
     "default_domain_resolver": {
       "server": "dns-direct",
       "strategy": "ipv4_only"

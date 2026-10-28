@@ -74,7 +74,7 @@ flowchart LR
 | `proxy` | Selector | Ручной выбор прокси через Clash API |
 | `auto` | URLTest | Автовыбор самого быстрого прокси (проверка раз в минуту) |
 | `hy2-fixed-sample` | Hysteria2 | obfs salamander, фиксированный порт, самоподписанный сертификат |
-| `hy2-hop-sample` | Hysteria2 | obfs salamander, основной порт 443 + port hopping (20000–50000) |
+| `hy2-hop-sample` | Hysteria2 | obfs salamander, port hopping (20000–50000) |
 | `hy2-tls-sample` | Hysteria2 | obfs salamander, фиксированный порт, валидный TLS-сертификат (проверка включена) |
 | `vls-sample` | VLESS | REALITY + gRPC + uTLS chrome |
 | `wg-sample` | WireGuard | Корпоративная сеть (endpoint, не входит в selector) |
@@ -117,3 +117,5 @@ WireGuard-туннели вынесены в секцию `endpoints` (не `out
 | `geoip-ru` | `rule-set-geoip/geoip-ru.srs` |
 | `geosite-category-ru` | `rule-set-geosite/geosite-category-ru.srs` |
 | `geosite-ru-available-only-inside` | `rule-set-geosite/geosite-ru-available-only-inside.srs` |
+
+Скачивание идёт напрямую, мимо прокси, через общий HTTP-клиент `http-direct` из секции `http_clients`: он назначен клиентом по умолчанию в `route.default_http_client`. Это замена устаревшего с sing-box 1.14 поля `download_detour`.

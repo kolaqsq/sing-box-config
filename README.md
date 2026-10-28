@@ -68,8 +68,10 @@ Port: 2080
 
 ```
 cheburbox/
-├── config.example.json  # Шаблон конфига с плейсхолдерами
-├── config.json          # Рабочий конфиг с ключами (в .gitignore)
-├── README.md
-└── ARCHITECTURE.md      # Архитектура конфига со схемой
+├── configs/
+│   └── desktop/
+│       ├── desktop.example.json  # Шаблон конфига с плейсхолдерами
+│       ├── config.json           # Рабочий конфиг с ключами (в .gitignore)
+│       └── ARCHITECTURE.md       # Архитектура конфига со схемой
+└── README.md
 ```

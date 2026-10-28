@@ -1,3 +1,16 @@
-.idea
-config_back
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
+
+# Рабочие конфиги с ключами: в репозиторий попадают только *.example.json
+configs/**/*.json
+!configs/**/*.example.json
 config.json
+config_back
+
+# Runtime-файлы sing-box
+cache.db
+*.log

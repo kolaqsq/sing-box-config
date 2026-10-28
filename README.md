@@ -1,8 +1,15 @@
 # cheburbox
 
-Конфигурация [sing-box](https://github.com/SagerNet/sing-box) с раздельной маршрутизацией трафика: российские ресурсы идут напрямую, все остальные — через выбранный прокси, корпоративные VPN работают всегда независимо от активного прокси.
+Конфигурация [sing-box](https://github.com/SagerNet/sing-box) с раздельной маршрутизацией трафика. Корпоративные VPN работают всегда, независимо от активного прокси.
 
-Подробнее об архитектуре: [ARCHITECTURE.md](configs/desktop/ARCHITECTURE.md)
+Две схемы на выбор:
+
+| Шаблон | По умолчанию | Исключения |
+|--------|--------------|------------|
+| `desktop.example.json` | всё через прокси | российские ресурсы — напрямую |
+| `desktop-direct.example.json` | всё напрямую | заблокированные в России и недоступные из России ресурсы — через прокси |
+
+Подробнее об архитектуре: [ARCHITECTURE.md](configs/ARCHITECTURE.md)
 
 ## Требования
 
@@ -14,8 +21,16 @@
 Скопируй пример конфига и заполни плейсхолдеры:
 
 ```bash
-cp configs/desktop/desktop.example.json configs/desktop/config.json
+cp configs/desktop.example.json configs/config.json
 ```
+
+Или, для схемы «по умолчанию напрямую»:
+
+```bash
+cp configs/desktop-direct.example.json configs/config.json
+```
+
+Прокси, WireGuard и Clash API в обоих шаблонах одинаковые, поэтому описание ниже подходит для любого из них.
 
 **Hysteria2** — три примера, оставь тот, что подходит под твой сервер:
 - `hy2-fixed-sample` — фиксированный порт, самоподписанный сертификат (`insecure: true`)
@@ -52,8 +67,8 @@ cp configs/desktop/desktop.example.json configs/desktop/config.json
 ## Проверка и запуск
 
 ```bash
-sing-box check -c configs/desktop/config.json
-sudo sing-box run -c configs/desktop/config.json
+sing-box check -c configs/config.json
+sudo sing-box run -c configs/config.json
 ```
 
 ## HTTP/SOCKS прокси
@@ -76,9 +91,9 @@ Port: 2080
 ```
 cheburbox/
 ├── configs/
-│   └── desktop/
-│       ├── desktop.example.json  # Шаблон конфига с плейсхолдерами
-│       ├── config.json           # Рабочий конфиг с ключами (в .gitignore)
-│       └── ARCHITECTURE.md       # Архитектура конфига со схемой
+│   ├── desktop.example.json         # Шаблон: по умолчанию прокси, РФ напрямую
+│   ├── desktop-direct.example.json  # Шаблон: по умолчанию напрямую, заблокированное через прокси
+│   ├── config.json                  # Рабочий конфиг с ключами (в .gitignore)
+│   └── ARCHITECTURE.md              # Архитектура конфига со схемой
 └── README.md
 ```

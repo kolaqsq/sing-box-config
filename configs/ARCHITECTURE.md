@@ -1,5 +1,7 @@
 # Архитектура конфига
 
+Основная часть описывает `desktop.example.json` (по умолчанию прокси, РФ напрямую). Отличия шаблона `desktop-direct.example.json` (по умолчанию напрямую, заблокированное через прокси) — в разделе [Схема «по умолчанию напрямую»](#схема-по-умолчанию-напрямую).
+
 ## Общая схема прохождения трафика
 
 ```mermaid
@@ -119,3 +121,53 @@ WireGuard-туннели вынесены в секцию `endpoints` (не `out
 | `geosite-ru-available-only-inside` | `rule-set-geosite/geosite-ru-available-only-inside.srs` |
 
 Скачивание идёт напрямую, мимо прокси, через общий HTTP-клиент `http-direct` из секции `http_clients`: он назначен клиентом по умолчанию в `route.default_http_client`. Это замена устаревшего с sing-box 1.14 поля `download_detour`.
+
+---
+
+## Схема «по умолчанию напрямую»
+
+Шаблон `desktop-direct.example.json`. Inbounds, outbounds, endpoints, HTTP-клиент и Clash API те же, что в основном шаблоне. Отличаются маршрутизация и DNS.
+
+```mermaid
+flowchart TD
+    R{Маршрутизатор}
+
+    R -->|"dns · bittorrent · icmp · NTP\nip_is_private"| DIR[direct]
+    R -->|"192.168.123.0/24"| WGS["wg-sample\nWireGuard endpoint"]
+    R -->|"youtube · reddit"| HY2["hy2-hop-sample"]
+    R -->|"cursor · claude · anthropic\nClaude Helper"| VLS["vls-sample"]
+    R -->|"Telegram"| SEL
+    R -->|"rule-set заблокированного"| SEL{{"proxy selector"}}
+    R -->|"всё остальное"| DIR
+
+    style WGS fill:#e8f4f8,stroke:#5b9bd5
+    style SEL fill:#fff3cd,stroke:#ffc107
+    style DIR fill:#d4edda,stroke:#28a745
+```
+
+| | `desktop.example.json` | `desktop-direct.example.json` |
+|---|---|---|
+| `route.final` | `proxy` | `direct` |
+| Явные правила в `direct` | `.ru`/`.su`/`.xn--p1ai`, `geoip-ru`, `geosite-category-ru`, `geosite-ru-available-only-inside`, отдельный IP | нет: direct и так по умолчанию |
+| Явные правила в `proxy` | Telegram | Telegram + все rule-set из списка ниже |
+| `dns.final` | `dns-remote` (через прокси) | `dns-direct` |
+| DNS-правила | российские домены → `dns-direct` | заблокированные домены → `dns-remote` |
+
+Заблокированные домены резолвятся через `dns-remote` (Google DoH через прокси): российский DNS может вернуть для них адрес заглушки. В DNS-правилах используются только `geosite-*`: IP-списки (`geoip-*`) в DNS-правилах без `match_response` устарели с sing-box 1.14.
+
+### Rule sets
+
+Набор повторяет пресет `ru-blocked-dev` из [glinet-geo-lists](https://github.com/kolaqsq/glinet-geo-lists): популярные заблокированные или замедленные в России сервисы плюс AI, сервисы для разработки и другие сервисы, которые сами не работают с российскими пользователями. Файлы берутся из того же [runetfreedom/russia-v2ray-rules-dat](https://github.com/runetfreedom/russia-v2ray-rules-dat).
+
+| Группа | Rule sets |
+|--------|-----------|
+| Блокировки РКН (community-список antifilter) | `geosite-antifilter-download-community`, `geoip-ru-blocked-community` |
+| Мессенджеры и видео | `geosite-youtube`, `geosite-telegram`, `geoip-telegram`, `geosite-discord` |
+| AI | `geosite-category-ai-!cn` |
+| Разработка | `geosite-jetbrains`, `geosite-hashicorp`, `geosite-docker`, `geosite-gitlab`, `geosite-atlassian`, `geosite-oracle` |
+| Дизайн и работа | `geosite-notion`, `geosite-figma`, `geosite-canva`, `geosite-autodesk`, `geosite-adobe`, `geosite-unity` |
+| Железо и драйверы | `geosite-intel`, `geosite-nvidia`, `geosite-amd` |
+| Стриминг | `geosite-netflix`, `geosite-spotify`, `geosite-disney`, `geosite-hbo`, `geosite-primevideo` |
+| Прочее | `geosite-ookla-speedtest` |
+
+Rule sets объявлены двумя записями с несколькими тегами (`"tag": [...]`, `{tag}` в `url`), это возможность sing-box 1.14. Чтобы добавить сервис, допиши его тег и в `route.rule_set`, и в правило `proxy` в `route.rules`, а для `geosite-*` ещё и в DNS-правило. Список доступных файлов: ветка `release`, папка `sing-box/` в репозитории runetfreedom.

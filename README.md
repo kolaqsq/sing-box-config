@@ -1,116 +1,125 @@
-# cheburbox
+# sing-box-config
 
-Конфигурация [sing-box](https://github.com/SagerNet/sing-box) с раздельной маршрутизацией трафика. Корпоративные VPN работают всегда, независимо от активного прокси.
+**English** | [Русский](README.ru.md)
 
-Две схемы на выбор:
+[sing-box](https://github.com/SagerNet/sing-box) configuration with split routing for users in Russia. Corporate VPNs (WireGuard) always work, regardless of the active proxy.
 
-| Шаблон | По умолчанию | Исключения |
-|--------|--------------|------------|
-| `desktop.example.json` | всё через прокси | российские ресурсы — напрямую |
-| `desktop-direct.example.json` | всё напрямую | заблокированные в России и недоступные из России ресурсы — через прокси |
+Two schemes to choose from:
 
-Подробнее об архитектуре: [ARCHITECTURE.md](configs/ARCHITECTURE.md)
+| Template | Default route | Exceptions |
+|----------|---------------|------------|
+| `desktop.example.json` | everything through the proxy | Russian resources go direct |
+| `desktop-direct.example.json` | everything direct | resources blocked in Russia or unavailable from Russia go through the proxy |
 
-## Требования
+Architecture details: [ARCHITECTURE.md](configs/ARCHITECTURE.md)
 
-- sing-box 1.14.0+ (`http_clients` для загрузки rule-set)
-- Права администратора (для TUN-интерфейса)
+## Requirements
 
-## Настройка
+- sing-box 1.14.0+ (`http_clients` for downloading rule-sets)
+- Administrator rights (for the TUN interface)
 
-Скопируй пример конфига и заполни плейсхолдеры:
+## Setup
+
+Copy a template and fill in the placeholders:
 
 ```bash
 cp configs/desktop.example.json configs/config.json
 ```
 
-Или, для схемы «по умолчанию напрямую»:
+Or, for the "direct by default" scheme:
 
 ```bash
 cp configs/desktop-direct.example.json configs/config.json
 ```
 
-Прокси, WireGuard и Clash API в обоих шаблонах одинаковые, поэтому описание ниже подходит для любого из них.
+Proxies, WireGuard and the Clash API are the same in both templates, so everything below applies to either of them.
 
-**Hysteria2** — три примера, оставь тот, что подходит под твой сервер:
-- `hy2-fixed-sample` — фиксированный порт, самоподписанный сертификат (`insecure: true`)
-- `hy2-hop-sample` — порт-хоппинг: `server_ports` + `hop_interval`, диапазон UDP-портов должен совпадать с настройкой сервера; `server_port` здесь не указывается — при заданном `server_ports` sing-box его игнорирует
-- `hy2-tls-sample` — валидный TLS-сертификат (например, Let's Encrypt): проверка сертификата включена, `server_name` должен совпадать с доменом (или IP) из сертификата
+**Hysteria2**: three examples, keep the one that matches your server:
+- `hy2-fixed-sample`: fixed port, self-signed certificate (`insecure: true`)
+- `hy2-hop-sample`: port hopping with `server_ports` + `hop_interval`; the UDP port range must match the server. `server_port` is not set here: sing-box ignores it when `server_ports` is set
+- `hy2-tls-sample`: valid TLS certificate (e.g. Let's Encrypt), certificate verification is on; `server_name` must match the domain (or IP) in the certificate
 
-Во всех трёх:
-- `server` — адрес сервера
-- `REPLACE_WITH_PASSWORD` — пароль подключения
-- `REPLACE_WITH_OBFS_PASSWORD` — пароль obfs salamander (если obfs на сервере не настроен, убери блок `obfs`)
+In all three:
+- `server`: server address
+- `REPLACE_WITH_PASSWORD`: connection password
+- `REPLACE_WITH_OBFS_PASSWORD`: salamander obfs password (if the server has no obfs, remove the `obfs` block)
 
-**VLESS** — три примера:
-- `vls-vision-sample` — REALITY + Vision (`flow: xtls-rprx-vision`) по TCP; самая распространённая схема REALITY (так её по умолчанию создаёт, например, 3x-ui)
-- `vls-sample` — REALITY через gRPC
-- `vls-tls-sample` — обычный TLS + Vision, для сервера со своим доменом и сертификатом
+**VLESS**: three examples:
+- `vls-vision-sample`: REALITY + Vision (`flow: xtls-rprx-vision`) over TCP; the most common REALITY setup (the default in 3x-ui, for example)
+- `vls-sample`: REALITY over gRPC
+- `vls-tls-sample`: plain TLS + Vision, for a server with its own domain and certificate
 
-Во всех трёх:
-- `server` — адрес сервера
-- `REPLACE_WITH_UUID` — UUID клиента
-- `flow` — должен совпадать с настройкой на сервере; если там Vision не включён, убери поле
+In all three:
+- `server`: server address
+- `REPLACE_WITH_UUID`: client UUID
+- `flow`: must match the server; remove the field if Vision is not enabled there
 
-Для REALITY (`vls-vision-sample`, `vls-sample`):
-- `REPLACE_WITH_PUBLIC_KEY` — публичный ключ REALITY
-- `REPLACE_WITH_SHORT_ID` — short ID REALITY
-- `server_name` — домен стороннего сайта, под который маскируется сервер; берётся из настроек сервера (`serverNames` / `dest`)
+For REALITY (`vls-vision-sample`, `vls-sample`):
+- `REPLACE_WITH_PUBLIC_KEY`: REALITY public key
+- `REPLACE_WITH_SHORT_ID`: REALITY short ID
+- `server_name`: the third-party site the server masquerades as; take it from the server settings (`serverNames` / `dest`)
 
 **Trojan** (`trojan-tls-sample`):
-- `server`, `server_name` — домен сервера из сертификата
-- `REPLACE_WITH_PASSWORD` — пароль
+- `server`, `server_name`: the server domain from the certificate
+- `REPLACE_WITH_PASSWORD`: password
 
-Для `vls-tls-sample` и `trojan-tls-sample` с самоподписанным сертификатом добавь в `tls` поле `"insecure": true`, а в `server_name` укажи то, на что выписан сертификат (часто это IP сервера).
+If `vls-tls-sample` or `trojan-tls-sample` uses a self-signed certificate, add `"insecure": true` to `tls` and set `server_name` to whatever the certificate is issued for (often the server IP).
 
-**WireGuard** (`wg-sample` и другие):
-- `address` — IP-адрес клиента в сети VPN; IPv6-адрес нужен только если сервер выдаёт dual-stack, иначе убери его
-- `peers[].address` — IP-адрес сервера WireGuard
-- `peers[].port` — порт сервера WireGuard
-- `REPLACE_WITH_PRIVATE_KEY` — приватный ключ клиента
-- `REPLACE_WITH_PUBLIC_KEY` — публичный ключ сервера
-- `REPLACE_WITH_PRE_SHARED_KEY` — pre-shared key (если настроен на сервере, иначе убери поле)
-- `allowed_ips` — подсети, доступные через этот туннель
+**WireGuard** (`wg-sample` and others):
+- `address`: client IP in the VPN network; the IPv6 address is only needed if the server is dual-stack, otherwise remove it
+- `peers[].address`: WireGuard server IP
+- `peers[].port`: WireGuard server port
+- `REPLACE_WITH_PRIVATE_KEY`: client private key
+- `REPLACE_WITH_PUBLIC_KEY`: server public key
+- `REPLACE_WITH_PRE_SHARED_KEY`: pre-shared key (remove the field if the server has none)
+- `allowed_ips`: subnets reachable through this tunnel
 
-**Маршруты**:
-- В `route.rules` замени IP-диапазоны `ip_cidr` на реальные подсети твоих VPN-сетей
-- При необходимости добавь или убери правила для конкретных процессов и доменов
+**Routes**:
+- In `route.rules`, replace the `ip_cidr` ranges with the real subnets of your VPN networks
+- Add or remove rules for specific processes and domains as needed
 
-**Clash API:**
-- `change-me` в `experimental.clash_api.secret` — секрет для доступа к API
+**Clash API**:
+- `change-me` in `experimental.clash_api.secret`: the API secret
 
-## Проверка и запуск
+## Check and run
 
 ```bash
 sing-box check -c configs/config.json
 sudo sing-box run -c configs/config.json
 ```
 
-## HTTP/SOCKS прокси
+## HTTP/SOCKS proxy
 
-Если TUN не нужен, можно использовать mixed-inbound напрямую:
+If you don't need TUN, use the mixed inbound directly:
 
 ```
 Host: 127.0.0.1
 Port: 2080
 ```
 
-## Переключение прокси
+## Switching proxies
 
-Активный прокси выбирается через Clash API (`127.0.0.1:9090`) или изменением поля `default` в секции `selector`.
+The active proxy is selected through the Clash API (`127.0.0.1:9090`) or by changing `default` in the `selector`.
 
-Вариант `auto` (`urltest`) раз в минуту проверяет задержку до каждого сервера из своего списка и сам переключается на самый быстрый; `tolerance` — разница в мс, при которой переключение не происходит. Новые серверы добавляй и в `selector`, и в `auto`.
+`auto` (`urltest`) checks the latency of every server in its list once a minute and switches to the fastest one; `tolerance` is the difference in ms below which it does not switch. Add new servers to both `selector` and `auto`.
 
-Если на одном сервере поднято несколько протоколов (например, Hysteria2, VLESS REALITY и Trojan), стоит добавить в `auto` их все: когда DPI начнёт резать один протокол, `urltest` сам переключится на другой.
+If one server runs several protocols (e.g. Hysteria2, VLESS REALITY and Trojan), add all of them to `auto`: when DPI starts blocking one protocol, `urltest` switches to another.
 
-## Структура проекта
+## Project structure
 
 ```
-cheburbox/
+sing-box-config/
 ├── configs/
-│   ├── desktop.example.json         # Шаблон: по умолчанию прокси, РФ напрямую
-│   ├── desktop-direct.example.json  # Шаблон: по умолчанию напрямую, заблокированное через прокси
-│   ├── config.json                  # Рабочий конфиг с ключами (в .gitignore)
-│   └── ARCHITECTURE.md              # Архитектура конфига со схемой
-└── README.md
+│   ├── desktop.example.json         # Template: proxy by default, Russian resources direct
+│   ├── desktop-direct.example.json  # Template: direct by default, blocked resources through the proxy
+│   ├── config.json                  # Your config with keys (in .gitignore)
+│   ├── ARCHITECTURE.md              # Config architecture with diagrams
+│   └── ARCHITECTURE.ru.md           # The same in Russian
+├── README.md                        # README in English
+├── README.ru.md                     # README in Russian
+└── LICENSE
 ```
+
+## License
+
+[MIT](LICENSE)

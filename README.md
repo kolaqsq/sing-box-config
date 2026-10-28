@@ -42,11 +42,26 @@ cp configs/desktop-direct.example.json configs/config.json
 - `REPLACE_WITH_PASSWORD` — пароль подключения
 - `REPLACE_WITH_OBFS_PASSWORD` — пароль obfs salamander (если obfs на сервере не настроен, убери блок `obfs`)
 
-**VLESS** (`vls-sample`):
-- `server` — IP-адрес сервера
+**VLESS** — три примера:
+- `vls-vision-sample` — REALITY + Vision (`flow: xtls-rprx-vision`) по TCP; самая распространённая схема REALITY (так её по умолчанию создаёт, например, 3x-ui)
+- `vls-sample` — REALITY через gRPC
+- `vls-tls-sample` — обычный TLS + Vision, для сервера со своим доменом и сертификатом
+
+Во всех трёх:
+- `server` — адрес сервера
 - `REPLACE_WITH_UUID` — UUID клиента
+- `flow` — должен совпадать с настройкой на сервере; если там Vision не включён, убери поле
+
+Для REALITY (`vls-vision-sample`, `vls-sample`):
 - `REPLACE_WITH_PUBLIC_KEY` — публичный ключ REALITY
 - `REPLACE_WITH_SHORT_ID` — short ID REALITY
+- `server_name` — домен стороннего сайта, под который маскируется сервер; берётся из настроек сервера (`serverNames` / `dest`)
+
+**Trojan** (`trojan-tls-sample`):
+- `server`, `server_name` — домен сервера из сертификата
+- `REPLACE_WITH_PASSWORD` — пароль
+
+Для `vls-tls-sample` и `trojan-tls-sample` с самоподписанным сертификатом добавь в `tls` поле `"insecure": true`, а в `server_name` укажи то, на что выписан сертификат (часто это IP сервера).
 
 **WireGuard** (`wg-sample` и другие):
 - `address` — IP-адрес клиента в сети VPN; IPv6-адрес нужен только если сервер выдаёт dual-stack, иначе убери его
@@ -85,6 +100,8 @@ Port: 2080
 Активный прокси выбирается через Clash API (`127.0.0.1:9090`) или изменением поля `default` в секции `selector`.
 
 Вариант `auto` (`urltest`) раз в минуту проверяет задержку до каждого сервера из своего списка и сам переключается на самый быстрый; `tolerance` — разница в мс, при которой переключение не происходит. Новые серверы добавляй и в `selector`, и в `auto`.
+
+Если на одном сервере поднято несколько протоколов (например, Hysteria2, VLESS REALITY и Trojan), стоит добавить в `auto` их все: когда DPI начнёт резать один протокол, `urltest` сам переключится на другой.
 
 ## Структура проекта
 

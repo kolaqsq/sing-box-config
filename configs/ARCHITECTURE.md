@@ -28,12 +28,18 @@ flowchart TD
     SEL --> HY2
     SEL --> HY3["hy2-tls-sample\nHysteria2 TLS"]
     SEL --> VLS
+    SEL --> VLV["vls-vision-sample\nVLESS·REALITY·Vision"]
+    SEL --> VLT["vls-tls-sample\nVLESS·TLS·Vision"]
+    SEL --> TRJ["trojan-tls-sample\nTrojan·TLS"]
     SEL --> DIR
 
     AUTO -.-> HY1
     AUTO -.-> HY2
     AUTO -.-> HY3
     AUTO -.-> VLS
+    AUTO -.-> VLV
+    AUTO -.-> VLT
+    AUTO -.-> TRJ
 
     style WGS fill:#e8f4f8,stroke:#5b9bd5
     style SEL fill:#fff3cd,stroke:#ffc107
@@ -79,6 +85,9 @@ flowchart LR
 | `hy2-hop-sample` | Hysteria2 | obfs salamander, port hopping (20000–50000) |
 | `hy2-tls-sample` | Hysteria2 | obfs salamander, фиксированный порт, валидный TLS-сертификат (проверка включена) |
 | `vls-sample` | VLESS | REALITY + gRPC + uTLS chrome |
+| `vls-vision-sample` | VLESS | REALITY + Vision по TCP + uTLS chrome |
+| `vls-tls-sample` | VLESS | обычный TLS (сертификат на домен сервера) + Vision + uTLS chrome |
+| `trojan-tls-sample` | Trojan | обычный TLS + uTLS chrome |
 | `wg-sample` | WireGuard | Корпоративная сеть (endpoint, не входит в selector) |
 | `direct` | Direct | Прямое подключение |
 

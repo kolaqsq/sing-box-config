@@ -95,6 +95,9 @@
         "hy2-hop-sample",
         "hy2-tls-sample",
         "vls-sample",
+        "vls-vision-sample",
+        "vls-tls-sample",
+        "trojan-tls-sample",
         "direct"
       ],
       "default": "hy2-fixed-sample"
@@ -106,7 +109,10 @@
         "hy2-fixed-sample",
         "hy2-hop-sample",
         "hy2-tls-sample",
-        "vls-sample"
+        "vls-sample",
+        "vls-vision-sample",
+        "vls-tls-sample",
+        "trojan-tls-sample"
       ],
       "url": "https://www.gstatic.com/generate_204",
       "interval": "1m",
@@ -194,6 +200,66 @@
       "transport": {
         "type": "grpc",
         "service_name": ""
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "vls-vision-sample",
+      "server": "123.123.123.5",
+      "server_port": 443,
+      "uuid": "REPLACE_WITH_UUID",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.github.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "REPLACE_WITH_PUBLIC_KEY",
+          "short_id": "REPLACE_WITH_SHORT_ID"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "vls-tls-sample",
+      "server": "vless.example.com",
+      "server_port": 443,
+      "uuid": "REPLACE_WITH_UUID",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "vless.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ]
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "trojan-tls-sample",
+      "server": "trojan.example.com",
+      "server_port": 443,
+      "password": "REPLACE_WITH_PASSWORD",
+      "tls": {
+        "enabled": true,
+        "server_name": "trojan.example.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "alpn": [
+          "h2",
+          "http/1.1"
+        ]
       }
     },
     {

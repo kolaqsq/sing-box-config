@@ -100,9 +100,9 @@ flowchart LR
 | 1 | `inbound: tun-in / mixed-in` | action: sniff |
 | 2 | `protocol: dns` | action: hijack-dns |
 | 3 | `protocol: bittorrent` | `direct` |
-| 4 | `network: icmp` | `direct` |
-| 5 | `port: 123` (NTP) | `direct` |
-| 6 | IP в подсети WireGuard | `wg-sample` |
+| 4 | `port: 123` (NTP) | `direct` |
+| 5 | IP в подсети WireGuard | `wg-sample` |
+| 6 | `network: icmp` (ping вне подсетей WireGuard) | `direct` |
 | 7 | Все остальные приватные IP | `direct` |
 | 8 | Домен содержит `youtube.com`, `reddit` | `hy2-hop-sample` |
 | 9 | Домен содержит `cursor`, `claude`, `anthropic` | `vls-sample` |
@@ -111,7 +111,7 @@ flowchart LR
 | 12 | Домен `.ru`/`.su`/`.xn--p1ai` ИЛИ `geoip-ru` / `geosite-category-ru` | `direct` |
 | — | Всё остальное | `proxy` (selector) |
 
-> **Важно:** WireGuard-подсети (`allowed_ips`) обязательно должны стоять в правилах **до** `ip_is_private`, иначе приватные адреса (10.x, 192.168.x и т.д.) перехватятся раньше и пойдут в `direct`, минуя туннель.
+> **Важно:** WireGuard-подсети (`allowed_ips`) обязательно должны стоять в правилах **до** `ip_is_private` и правила `icmp`, иначе приватные адреса (10.x, 192.168.x и т.д.) перехватятся раньше и пойдут в `direct`, минуя туннель. То же с ping: если `icmp` стоит выше, ping в рабочую сеть уйдёт в интернет, а не в туннель.
 
 > **Кросс-платформенность:** правила `process_name` зависят от платформы. На macOS используются имена без расширения (`Telegram`, `Claude Helper`). На **Windows** нужно указывать имя исполняемого файла с `.exe` (`Telegram.exe`, `claude.exe`). На **Linux** имя зависит от дистрибутива (`telegram-desktop`, `telegram` и т.д.). Если имя процесса не совпадает — правило просто пропускается, трафик уходит по следующим условиям.
 
@@ -148,7 +148,7 @@ flowchart TD
     R -->|"youtube · reddit"| HY2["hy2-hop-sample"]
     R -->|"cursor · claude · anthropic\nClaude Helper"| VLS["vls-sample"]
     R -->|"Telegram"| SEL
-    R -->|"rule-set заблокированного"| SEL{{"proxy selector"}}
+    R -->|"rule-set заблокированного\nIP Cloudflare · Fastly"| SEL{{"proxy selector"}}
     R -->|"всё остальное"| DIR
 
     style WGS fill:#e8f4f8,stroke:#5b9bd5
@@ -180,5 +180,15 @@ flowchart TD
 | Железо и драйверы | `geosite-intel`, `geosite-nvidia`, `geosite-amd` |
 | Стриминг | `geosite-netflix`, `geosite-spotify`, `geosite-disney`, `geosite-hbo`, `geosite-primevideo` |
 | Прочее | `geosite-ookla-speedtest` |
+| CDN (по IP) | `geoip-cloudflare`, `geoip-fastly` |
 
 Rule sets объявлены двумя записями с несколькими тегами (`"tag": [...]`, `{tag}` в `url`), это возможность sing-box 1.14. Чтобы добавить сервис, допиши его тег и в `route.rule_set`, и в правило `proxy` в `route.rules`, а для `geosite-*` ещё и в DNS-правило. Список доступных файлов: ветка `release`, папка `sing-box/` в репозитории runetfreedom.
+
+### CDN: Cloudflare и Fastly
+
+`geoip-cloudflare` и `geoip-fastly` — не списки заблокированных сайтов, а диапазоны IP этих CDN. Из России большие файлы с Cloudflare и Fastly зависают, поэтому сайты за ними частично не работают, хотя и не заблокированы. Типичный случай — репозитории пакетов: Maven Central, `repo.reactnative.dev`, Gradle, JitPack, npm, yarn и CocoaPods стоят за Cloudflare, RubyGems и `githubusercontent.com` — за Fastly (Gradle падает с `Read timed out` на `.aar` React Native).
+
+Цена такого правила:
+- Через прокси идёт заметная часть интернета, включая часть российских сайтов за Cloudflare.
+- Это IP-правила, поэтому они работают только через TUN, где известен IP назначения. Приложение, настроенное на mixed-прокси (`127.0.0.1:2080`), передаёт домен, и правило не срабатывает. Если собираешь через mixed-прокси, добавь репозитории отдельным правилом `domain_suffix`.
+- IP-списки не используются в DNS-правилах (без `match_response` это устарело с sing-box 1.14), поэтому эти сайты резолвятся через `dns-direct`.

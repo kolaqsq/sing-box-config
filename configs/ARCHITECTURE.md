@@ -100,9 +100,9 @@ flowchart LR
 | 1 | `inbound: tun-in / mixed-in` | action: sniff |
 | 2 | `protocol: dns` | action: hijack-dns |
 | 3 | `protocol: bittorrent` | `direct` |
-| 4 | `network: icmp` | `direct` |
-| 5 | `port: 123` (NTP) | `direct` |
-| 6 | IP in a WireGuard subnet | `wg-sample` |
+| 4 | `port: 123` (NTP) | `direct` |
+| 5 | IP in a WireGuard subnet | `wg-sample` |
+| 6 | `network: icmp` (ping outside WireGuard subnets) | `direct` |
 | 7 | All other private IPs | `direct` |
 | 8 | Domain contains `youtube.com`, `reddit` | `hy2-hop-sample` |
 | 9 | Domain contains `cursor`, `claude`, `anthropic` | `vls-sample` |
@@ -111,7 +111,7 @@ flowchart LR
 | 12 | Domain `.ru`/`.su`/`.xn--p1ai` OR `geoip-ru` / `geosite-category-ru` | `direct` |
 | — | Everything else | `proxy` (selector) |
 
-> **Important:** WireGuard subnets (`allowed_ips`) must come **before** `ip_is_private` in the rules. Otherwise private addresses (10.x, 192.168.x, etc.) are matched first and go `direct`, bypassing the tunnel.
+> **Important:** WireGuard subnets (`allowed_ips`) must come **before** `ip_is_private` and the `icmp` rule in the rules. Otherwise private addresses (10.x, 192.168.x, etc.) are matched first and go `direct`, bypassing the tunnel. The same goes for ping: with `icmp` above them, a ping to a work network would go to the internet instead of the tunnel.
 
 > **Cross-platform:** `process_name` rules depend on the platform. On macOS, names have no extension (`Telegram`, `Claude Helper`). On **Windows**, use the executable name with `.exe` (`Telegram.exe`, `claude.exe`). On **Linux**, the name depends on the distribution (`telegram-desktop`, `telegram`, etc.). If the process name doesn't match, the rule is simply skipped and traffic falls through to the next conditions.
 
@@ -148,7 +148,7 @@ flowchart TD
     R -->|"youtube · reddit"| HY2["hy2-hop-sample"]
     R -->|"cursor · claude · anthropic\nClaude Helper"| VLS["vls-sample"]
     R -->|"Telegram"| SEL
-    R -->|"blocked rule-sets"| SEL{{"proxy selector"}}
+    R -->|"blocked rule-sets\nCloudflare · Fastly IPs"| SEL{{"proxy selector"}}
     R -->|"everything else"| DIR
 
     style WGS fill:#e8f4f8,stroke:#5b9bd5
@@ -180,5 +180,15 @@ The set mirrors the `ru-blocked-dev` preset from [glinet-geo-lists](https://gith
 | Hardware and drivers | `geosite-intel`, `geosite-nvidia`, `geosite-amd` |
 | Streaming | `geosite-netflix`, `geosite-spotify`, `geosite-disney`, `geosite-hbo`, `geosite-primevideo` |
 | Other | `geosite-ookla-speedtest` |
+| CDN (by IP) | `geoip-cloudflare`, `geoip-fastly` |
 
 The rule-sets are declared as two entries with multiple tags (`"tag": [...]`, `{tag}` in `url`), a sing-box 1.14 feature. To add a service, add its tag to `route.rule_set` and to the `proxy` rule in `route.rules`, and for `geosite-*` also to the DNS rule. Available files: the `release` branch, `sing-box/` folder of the runetfreedom repository.
+
+### CDN: Cloudflare and Fastly
+
+`geoip-cloudflare` and `geoip-fastly` are not lists of blocked sites: they are the IP ranges of these CDNs. From Russia, large downloads from Cloudflare and Fastly stall, so sites behind them partly break even though they are not blocked. Package registries are a typical case: Maven Central, `repo.reactnative.dev`, Gradle, JitPack, npm, yarn and CocoaPods are behind Cloudflare, RubyGems and `githubusercontent.com` are behind Fastly (Gradle fails with `Read timed out` on React Native `.aar` files).
+
+The trade-off:
+- A noticeable part of the web goes through the proxy, including some Russian sites behind Cloudflare.
+- These are IP rules, so they only work through TUN, where the destination IP is known. An app configured to use the mixed proxy (`127.0.0.1:2080`) sends a domain, and the rule does not match. If you build through the mixed proxy, add the registries as a `domain_suffix` rule.
+- IP rule-sets are not used in DNS rules (deprecated since sing-box 1.14 without `match_response`), so these sites are resolved through `dns-direct`.

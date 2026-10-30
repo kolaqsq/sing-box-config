@@ -288,10 +288,6 @@
         "outbound": "direct"
       },
       {
-        "network": "icmp",
-        "outbound": "direct"
-      },
-      {
         "port": [123],
         "outbound": "direct"
       },
@@ -300,6 +296,10 @@
           "192.168.123.0/24"
         ],
         "outbound": "wg-sample"
+      },
+      {
+        "network": "icmp",
+        "outbound": "direct"
       },
       {
         "ip_is_private": true,
